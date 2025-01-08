@@ -35,7 +35,7 @@ export async function decode(options = {}) {
 export async function verify(options = {}) {
   const { publicKey, enc, sig } = options
   if (!publicKey) {
-    throw new Error('public key must be a DER-encoded Ed25519 verify key')
+    throw new Error('public key must be a hex-encoded Ed25519 verify key')
   }
 
   const publicKeyBytes = new Uint8Array(publicKey.match(/.{2}/g).map(byte => parseInt(byte, 16)))
