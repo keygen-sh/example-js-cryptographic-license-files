@@ -16,7 +16,7 @@
 </head>
 <body>
   <h1>License File Verification</h1>
-  <form id="license-form">
+  <form id="licenseForm">
     <label for="publicKey">Public Key:</label>
     <input type="text" id="publicKey" name="publicKey" value="e8601e48b69383ba520245fd07971e983d06d22c4257cfd82304601479cee788" required>
     <br><br>
@@ -51,13 +51,13 @@
   </form>
 
   <h2>License Details</h2>
-  <textarea id="license-output" readonly></textarea>
+  <textarea id="licenseOutput" readonly></textarea>
 
   <script type="module">
     import { decode, verify, decrypt } from './keygen.js'
 
-    const form = document.getElementById('license-form')
-    const output = document.getElementById('license-output')
+    const form = document.getElementById('licenseForm')
+    const output = document.getElementById('licenseOutput')
     const uploadRadio = document.getElementById('uploadRadio')
     const inputRadio = document.getElementById('inputRadio')
     const uploadContainer = document.getElementById('uploadContainer')
