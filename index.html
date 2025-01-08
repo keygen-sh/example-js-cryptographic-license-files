@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>License File Verification</title>
+  <style>
+    textarea {
+      width: 100%;
+      height: 200px;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>License File Verification</h1>
+  <form id="license-form">
+    <label for="publicKey">Public Key:</label>
+    <input type="text" id="publicKey" name="publicKey" value="e8601e48b69383ba520245fd07971e983d06d22c4257cfd82304601479cee788" required>
+    <br><br>
+
+    <label for="licenseKey">License Key:</label>
+    <input type="text" id="licenseKey" name="licenseKey" value="8750AB-30B7BD-023BA9-31B601-4550A2-V3" required>
+    <br><br>
+
+    <label>
+      <input type="radio" name="licenseInputMethod" value="upload" id="uploadRadio" checked>
+      Upload License File
+    </label>
+    <br>
+    <label>
+      <input type="radio" name="licenseInputMethod" value="input" id="inputRadio">
+      Input License File
+    </label>
+    <br><br>
+
+    <div id="uploadContainer">
+      <label for="licenseFile">License File:</label>
+      <input type="file" id="licenseFile" name="licenseFile" accept=".lic">
+    </div>
+
+    <div id="inputContainer" class="hidden">
+      <label for="licenseText">License File:</label>
+      <textarea id="licenseText" name="licenseText" placeholder="Paste license file content here"></textarea>
+    </div>
+    <br>
+
+    <button type="submit">Verify</button>
+  </form>
+
+  <h2>License Details</h2>
+  <textarea id="license-output" readonly></textarea>
+
+  <script type="module">
+    import { decode, verify, decrypt } from './keygen.js'
+
+    const form = document.getElementById('license-form')
+    const output = document.getElementById('license-output')
+    const uploadRadio = document.getElementById('uploadRadio')
+    const inputRadio = document.getElementById('inputRadio')
+    const uploadContainer = document.getElementById('uploadContainer')
+    const inputContainer = document.getElementById('inputContainer')
+
+    // toggle input method visibility based on selected radio button
+    uploadRadio.addEventListener('change', () => {
+      uploadContainer.classList.remove('hidden')
+      inputContainer.classList.add('hidden')
+    })
+
+    inputRadio.addEventListener('change', () => {
+      inputContainer.classList.remove('hidden')
+      uploadContainer.classList.add('hidden')
+    })
+
+    // initial state
+    if (uploadRadio.checked) {
+      uploadContainer.classList.remove('hidden')
+      inputContainer.classList.add('hidden')
+    } else {
+      inputContainer.classList.remove('hidden')
+      uploadContainer.classList.add('hidden')
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault() // prevent form from refreshing the page
+
+      const formData = new FormData(form)
+      const publicKey = formData.get('publicKey')
+      const licenseKey = formData.get('licenseKey')
+      const file = formData.get('licenseFile')
+      const text = formData.get('licenseText').trim()
+
+      // determine which input to use based on the selected radio button
+      let licenseFile = ''
+      if (uploadRadio.checked && file) {
+        licenseFile = await file.text() // use uploaded file content
+      } else if (inputRadio.checked && text) {
+        licenseFile = text // use manually entered text
+      } else {
+        output.value = 'Please provide a license file by uploading or inputting the text.'
+        return
+      }
+
+      try {
+        const { enc, sig } = await decode({ licenseFile })
+        const ok = await verify({ enc, sig, publicKey })
+        if (ok) {
+          const lic = await decrypt({ enc, licenseKey })
+          output.value = JSON.stringify(lic, null, 2)
+        } else {
+          output.value = 'License verification failed.'
+        }
+      } catch (e) {
+        output.value = `An error occurred: ${e.message}`
+      }
+    })
+  </script>
+</body>
+</html>
